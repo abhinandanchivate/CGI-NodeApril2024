@@ -1,8 +1,13 @@
 // all user related apis we will write it here.
 import express from "express";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
 import { check, validationResult } from "express-validator";
 import UserModel from "../models/UserModel.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+dotenv.config();
 // check : used to apply validation for the data
 // validationResult : will be used to to validate the data against the criteria and we will get the final result==> true/false
 
@@ -86,7 +91,22 @@ userRouter.post(
       if (!isMatch) {
         return res.status(400).json({ msg: "invalid credentials" });
       } else {
-        return res.status(400).json({ msg: "user  found" });
+        // JWT
+        const payload = { user: { id: user.id } };
+
+        jwt.sign(
+          payload,
+          process.env.JWT_SECRET,
+          { expiresIn: 60 },
+          (err, token) => {
+            if (err) {
+              throw err;
+            }
+            return res.status(200).json({ token });
+          }
+        );
+        // id
+        //return res.status(400).json({ msg: "user  found" });
       }
     } catch (err) {}
   }
@@ -96,6 +116,24 @@ userRouter.post(
 2. we should generate the JWT
 3. this token will use the custom header.
 */
+
+// get user details on the basis of token
+/*
+endpoint : /api/users
+type : private===> can be accessible to the users who are having valid token
+method : GET
+description: provide the token and get the user details.
+
+
+*/
+userRouter.get("/auth", authMiddleware, async (req, res) => {
+  // userid ==> req.user.id
+  try {
+    const user = await UserModel.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (err) {}
+  //
+});
 export default userRouter;
 // so that we can use it outside the userApi file.
 // as good as marking public keyword to function/ method.
