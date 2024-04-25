@@ -9,6 +9,50 @@ import ProfileModels from "../models/profileModel.js";
 // validationResult : will be used to to validate the data against the criteria and we will get the final result==> true/false
 
 const profileRouter = express.Router();
+
+/*
+endpoint : /api/profile/all
+type : public===> can be accessible to
+method : GET
+description: we can create a user profile for this application.
+
+*/
+
+profileRouter.get("/all", async (req, res) => {
+  try {
+    const profiles = await ProfileModels.find();
+    // select * from profile
+    if (!profiles) {
+      return res.status(404).json({ msg: "No profiles found" });
+    }
+    res.json(profiles);
+  } catch (err) {
+    res.status(500).json({ error: "server error" });
+  }
+});
+
+/*
+endpoint : /api/profile/:id
+type : public===> can be accessible to
+method : GET
+description: we can create a user profile for this application.
+
+*/
+
+profileRouter.get("/:profileId", async (req, res) => {
+  try {
+    // const { profileId } = req.params;
+    const profileId = req.params.profileId;
+    const profiles = await ProfileModels.findOne({ _id: profileId });
+    // select * from profile
+    if (!profiles) {
+      return res.status(404).json({ msg: "No profiles found" });
+    }
+    res.json(profiles);
+  } catch (err) {
+    res.status(500).json({ error: "server error" });
+  }
+});
 /*
 endpoint : /api/profile
 type : public===> can be accessible to
